@@ -1,0 +1,13 @@
+trans 0 a 0
+trans 0 b 0
+trans 0 c 0
+trans 0 a 1
+trans 1 b 2
+trans 2 c 3
+trans 0 b 4
+trans 4 b 5
+trans 5 b 3
+trans 3 a 3
+trans 3 b 3
+start 0
+final 3
