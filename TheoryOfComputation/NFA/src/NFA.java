@@ -108,13 +108,29 @@ public class NFA {
 		 * @param b turn on/off accept flag
 		 */
 		public void setAccept(boolean b){this.isAccept=b;}
+		/**
+		 * @param i the index in the state list. also - the index of the node
+		 */
 		public void setIndex(int i){this.idx=i;}
+		/**
+		 * @return
+		 */
 		public HashMap getFromStates(){return this.fromStates;}
+		/**
+		 * @return
+		 */
 		public HashMap getToStates(){return this.toStates;}
 		
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
 		public String toString(){
 			return ""+this.idx+(this.isAccept?"f":"")+(this.isStart?"s":"")+": "+this.fromStates+" , "+this.toStates+"";
 		}
+		/**
+		 * @param to
+		 * @param thechar
+		 */
 		public void addTo(int to,String thechar){
 			//if key already exists, add node to it, otherwise create a new array and add the array to the map
 			if(this.toStates.get(thechar)!=null){
@@ -125,6 +141,10 @@ public class NFA {
 				this.toStates.put(thechar, newA);
 			}
 		}
+		/**
+		 * @param from
+		 * @param thechar
+		 */
 		public void addFrom(int from,String thechar){
 			//if key already exists, add node to it, otherwise create a new array and add the array to the map
 			if(this.fromStates.get(thechar)!=null){
@@ -135,6 +155,10 @@ public class NFA {
 				this.fromStates.put(thechar, newA);
 			}
 		}
+		/**
+		 * @param thechar
+		 * @return
+		 */
 		public ArrayList<Integer> goesTo(String thechar){
 			return (ArrayList<Integer>)toStates.get(thechar);
 		}
@@ -219,7 +243,7 @@ public class NFA {
 	}
 
 	
-	/**
+	/** ensures the machine has at least <i>i</i> nodes
 	 * @param i
 	 */
 	private void ensureMachineSize(int i){
