@@ -1,0 +1,16 @@
+"var1","var2"
+"40","H.caribaea yellow",36.78
+"41","H.caribaea yellow",37.02
+"42","H.caribaea yellow",36.52
+"43","H.caribaea yellow",36.11
+"44","H.caribaea yellow",36.03
+"45","H.caribaea yellow",35.45
+"46","H.caribaea yellow",38.13
+"47","H.caribaea yellow",37.1
+"48","H.caribaea yellow",35.17
+"49","H.caribaea yellow",36.82
+"50","H.caribaea yellow",36.66
+"51","H.caribaea yellow",35.68
+"52","H.caribaea yellow",36.03
+"53","H.caribaea yellow",34.57
+"54","H.caribaea yellow",NA

@@ -1,0 +1,24 @@
+"var1","var2"
+"17","H.caribaea red",41.9
+"18","H.caribaea red",42.01
+"19","H.caribaea red",41.93
+"20","H.caribaea red",43.09
+"21","H.caribaea red",41.47
+"22","H.caribaea red",41.69
+"23","H.caribaea red",39.78
+"24","H.caribaea red",40.57
+"25","H.caribaea red",39.63
+"26","H.caribaea red",42.18
+"27","H.caribaea red",40.66
+"28","H.caribaea red",37.87
+"29","H.caribaea red",39.16
+"30","H.caribaea red",37.4
+"31","H.caribaea red",38.2
+"32","H.caribaea red",38.07
+"33","H.caribaea red",38.1
+"34","H.caribaea red",37.97
+"35","H.caribaea red",38.79
+"36","H.caribaea red",38.23
+"37","H.caribaea red",38.87
+"38","H.caribaea red",37.78
+"39","H.caribaea red",38.01

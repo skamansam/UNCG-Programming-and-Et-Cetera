@@ -1,0 +1,159 @@
+
+> bihai <- read.table("/home/sam/Documents/School/STA271/hw4/bihai.txt", 
++   header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
+
+> red <- read.table("/home/sam/Documents/School/STA271/hw4/red.txt", 
++   header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
+
+> yellow <- read.table("/home/sam/Documents/School/STA271/hw4/yellow.txt", 
++   header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
+
+> library(relimp, pos=4)
+
+> showData(yellow, placement='-20+200', font=getRcmdr('logFont'), maxwidth=80,
++    maxheight=30, suppress.X11.warnings=FALSE)
+
+> showData(red, placement='-20+200', font=getRcmdr('logFont'), maxwidth=80, 
++   maxheight=30, suppress.X11.warnings=FALSE)
+
+> fix(red)
+
+> fix(yellow)
+
+> t.test(bihai$var2, alternative='two.sided', mu=0.0, conf.level=.95)
+
+	One Sample t-test
+
+data:  bihai$var2 
+t = 156.9737, df = 15, p-value < 2.2e-16
+alternative hypothesis: true mean is not equal to 0 
+95 percent confidence interval:
+ 46.9512 48.2438 
+sample estimates:
+mean of x 
+  47.5975 
+
+
+> summary(bihai)
+       var1         var2      
+ H. bihai:16   Min.   :46.34  
+               1st Qu.:46.73  
+               Median :47.12  
+               Mean   :47.60  
+               3rd Qu.:48.20  
+               Max.   :50.26  
+
+> tapply(bihai$var2, list(var1=bihai$var1), sd, na.rm=TRUE)
+var1
+H. bihai 
+1.212878 
+
+> Dataset <- read.table("/home/sam/Documents/School/STA271/hw4/Dataset.txt", 
++   header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
+
+> library(abind, pos=4)
+
+> tapply(Dataset$var2, list(var1=Dataset$var1), sd, na.rm=TRUE)
+var1
+         H. bihai    H.caribaea red H.caribaea yellow 
+        1.2128781         1.7987630         0.9090778 
+
+> tapply(Dataset$var2, list(var1=Dataset$var1), mean, na.rm=TRUE)
+var1
+         H. bihai    H.caribaea red H.caribaea yellow 
+         47.59750          39.71130          36.29071 
+
+> library(aplpack, pos=4)
+
+> stem.leaf(bihai$var2, style="bare", unit=1, trim.outliers=FALSE, na.rm=TRUE)
+1 | 2: represents 12
+ leaf unit: 1
+            n: 16
+         4 | 
+         4 | 
+         4 | 
+  (10)   4 | 6666666777
+    6    4 | 8888
+    2    5 | 00
+         5 | 
+         5 | 
+         5 | 
+         5 | 
+         6 | 
+
+> stem.leaf(red$var2, style="bare", unit=1, trim.outliers=FALSE, 
++   reverse.negative.leaves=FALSE, na.rm=TRUE)
+1 | 2: represents 12
+ leaf unit: 1
+            n: 23
+         3 | 
+         3 | 
+         3 | 
+    4    3 | 7777
+  (10)   3 | 8888888999
+    9    4 | 001111
+    3    4 | 223
+         4 | 
+         4 | 
+         4 | 
+         5 | 
+
+> stem.leaf(yellow$var2, style="bare", unit=1, trim.outliers=FALSE, 
++   na.rm=TRUE)
+1 | 2: represents 12
+ leaf unit: 1
+            n: 15
+        3 | 
+        3 | 
+   5    3 | 44555
+  (9)   3 | 666666677
+   1    3 | 8
+        4 | 
+
+> stem.leaf(yellow$var2, style="bare", unit=0.1, trim.outliers=FALSE, 
++   na.rm=TRUE)
+1 | 2: represents 1.2
+ leaf unit: 0.1
+            n: 15
+   2    34 | 56
+   4    35 | 14
+   5    35 | 6
+  (3)   36 | 001
+   7    36 | 5678
+   3    37 | 01
+        37 | 
+   1    38 | 1
+
+> stem.leaf(bihai$var2, style="bare", unit=0.1, trim.outliers=FALSE, 
++   na.rm=TRUE)
+1 | 2: represents 1.2
+ leaf unit: 0.1
+            n: 16
+   2    46 | 34
+   7    46 | 66789
+  (3)   47 | 114
+        47 | 
+   6    48 | 0133
+        48 | 
+        49 | 
+        49 | 
+   2    50 | 12
+
+> stem.leaf(red$var2, style="bare", unit=0.1, trim.outliers=FALSE, na.rm=TRUE)
+1 | 2: represents 1.2
+ leaf unit: 0.1
+            n: 23
+   1    37 | 4
+   4    37 | 789
+   9    38 | 00122
+  11    38 | 78
+  (1)   39 | 1
+  11    39 | 67
+        40 | 
+   9    40 | 56
+   7    41 | 4
+   6    41 | 699
+   3    42 | 01
+        42 | 
+   1    43 | 0
+
