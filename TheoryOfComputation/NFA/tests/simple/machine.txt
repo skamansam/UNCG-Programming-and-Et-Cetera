@@ -1,0 +1,10 @@
+#this machine accepts (a*bc*)*
+trans 0 a 1
+trans 0 b 0
+trans 1 a 1
+trans 1 b 2
+trans 2 c 2
+trans 2 a 1
+start 0
+final 0
+final 2

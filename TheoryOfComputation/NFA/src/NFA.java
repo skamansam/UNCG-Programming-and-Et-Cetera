@@ -68,7 +68,7 @@ public class NFA {
 	ArrayList<State> theStates = new ArrayList<State>();
 
 	//currently "active" states
-	ArrayList<State> curStates = new ArrayList<State>();
+	ArrayList<State> startStates = new ArrayList<State>();
 	
 	private class State{
 		private int idx;
@@ -108,10 +108,12 @@ public class NFA {
 		 * @param b turn on/off accept flag
 		 */
 		public void setAccept(boolean b){this.isAccept=b;}
+		public boolean getAccept(){return this.isAccept;}
 		/**
 		 * @param i the index in the state list. also - the index of the node
 		 */
 		public void setIndex(int i){this.idx=i;}
+		public int getIndex(){return this.idx;}
 		/**
 		 * @return
 		 */
@@ -125,7 +127,7 @@ public class NFA {
 		 * @see java.lang.Object#toString()
 		 */
 		public String toString(){
-			return ""+this.idx+(this.isAccept?"f":"")+(this.isStart?"s":"")+": "+this.fromStates+" , "+this.toStates+"";
+			return ""+this.idx+(this.isAccept?"f":"")+(this.isStart?"s":"");//+": "+this.fromStates+" , "+this.toStates+"";
 		}
 		/**
 		 * @param to
@@ -199,13 +201,17 @@ public class NFA {
 				//The following bit of code assembles pattern matchers for the input file
 				Pattern ptrans = Pattern.compile("trans\\s*(\\d)\\s*(\\S*)\\s*(\\d)"),
 						pstart = Pattern.compile("start\\s*(\\d)"),
-						pfinal = Pattern.compile("final\\s*(\\d)");
+						pfinal = Pattern.compile("final\\s*(\\d)"),
+						pcomment = Pattern.compile("$\\s*\\#");
 				Matcher tmatch=ptrans.matcher(theLine),
 						smatch=pstart.matcher(theLine),
+						cmatch=pcomment.matcher(theLine),
 						fmatch=pfinal.matcher(theLine);
 
 				//first, we check for the most used occurrence, being "trans"
-				if (tmatch.find()){
+				if (cmatch.find()){
+					//ignore comments, line that begin with a #
+				}else if (tmatch.find()){
 					//save values for readability
 					int from = new Integer(tmatch.group(1));
 					String thechar = tmatch.group(2);
@@ -223,7 +229,7 @@ public class NFA {
 				}else if (smatch.find()){
 					//System.out.println("Start:"+smatch.group(1));
 					theStates.get(new Integer(smatch.group(1))).setStart(true);
-					curStates.add(theStates.get(new Integer(smatch.group(1))));
+					startStates.add(theStates.get(new Integer(smatch.group(1))));
 				//lastly, we check for "final"
 				}else if (fmatch.find()){
 					//System.out.println("Final:"+fmatch.group(1));
@@ -261,43 +267,121 @@ public class NFA {
 	 * @param theInput
 	 */
 	public void processInput(File theFile){
+		ArrayList<String> theInputString=new ArrayList<String>();
+		ArrayList<String> theTestResults=new ArrayList<String>();
+
 		try {
 
 			// read input file containing machine description
 			FileInputStream inStream = new FileInputStream(theFile);
 			BufferedReader theReader = new BufferedReader(new InputStreamReader(inStream));
-			String theInputString="";
-			while (theReader.ready()) 
-				theInputString += theReader.readLine();
-			// dispose all the resources after using them.
+			while (theReader.ready()) {
+				String curLine=theReader.readLine().trim();//read the line, trimming whitespace at beginning and end
+				if(curLine.isEmpty() || curLine.startsWith("#")); //skip blank lines and comments
+				else{
+										
+					if(curLine.endsWith("#f")){
+						theTestResults.add("f");
+						curLine=curLine.split("\\#")[0];
+					}else if(curLine.endsWith("#a")){
+						theTestResults.add("a");
+						curLine=curLine.split("\\#")[0];
+					}else
+						theTestResults.add("");
+					//add the input string to the lsit of input strings
+					theInputString.add(curLine.trim());
+				}
+			}
+			// close the file readers
 			inStream.close();
 			theReader.close();
-			
-			System.out.println("Begin Processing with:\n"+curStates);
-			for(char c :theInputString.toCharArray()){
-				//copy into new array so we aren't messing with original
-				ArrayList<State> newStates = new ArrayList<State>();
-				newStates.addAll(curStates);
-				
-				//process input character, appending states at curState[char]
-				System.out.println("Processing char "+c+" :");
-				for(int sidx=0;sidx<newStates.size();sidx++){	
-					System.out.print("current states "+sidx+" / "+newStates.size()+" : ");
-					System.out.print(newStates.get(sidx)+"\n");
-					//add "To" states
-					for(int i:newStates.get(sidx).goesTo(""+c))
-						curStates.add(theStates.get(i));
-				}
-				//move new state list to old
-				//curStates=newStates;
-			}
-			
+		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		int curIdx=0;
+		for(String s:theInputString){
+			if(canHandleString(s)){
+				System.out.println("[accept]");
+				boolean b = checkVaildity(s,true,theTestResults.get(curIdx));
+			}else{
+				System.out.println("[reject]");
+			}
+			curIdx++;
+		}
 		
+	}
+	private boolean checkVaildity(String theTestString,boolean actualResult, String intendedResult){
+		boolean isValid=false;
+		String errString="";
+		if(intendedResult==null){
+			errString+="No result data for "+theTestString+". Actual result is "+actualResult+".";
+			isValid=true;
+		}else{
+			boolean intendedBool=false;
+			if(intendedResult.equals("f"))
+				intendedBool=false;
+			if(intendedResult.equals("a"))
+				intendedBool=true;
+
+			if(actualResult==intendedBool){
+				errString+="Test matches for "+theTestString+".";
+				isValid=true;
+			}else{
+				errString+="Test fails with "+theTestString+" ("+actualResult+" != "+intendedBool+") Something is wrong with your logic. Check the machine and input and try again.";
+				isValid=false;				
+			}
+		}
+		System.err.println(errString);
+		return isValid;
+	}
+	public boolean canHandleString(String s){
+		ArrayList<State> curStates=new ArrayList<State>(startStates);
+		boolean ret=false;
+		//System.err.println("Begin Processing "+s);//+" with:\n"+curStates);
+
+			for(char c :s.toCharArray()){
+				//copy into new array so we aren't messing with original
+				ArrayList<Integer> addStateIdxs = new ArrayList<Integer>();
+				ArrayList<Integer> removeStateIdxs = new ArrayList<Integer>();
+				
+				//Step 1: check all curStates for char
+				for(int i=0;i<curStates.size();i++){
+					//Step 1.1: if curStates[i] can move to a new state,
+					ArrayList<Integer> goesTo=curStates.get(i).goesTo(""+c);
+					if(goesTo!=null && goesTo.size()>0){
+						//1.1.1: add to removeStateIdxs
+						removeStateIdxs.add(i);
+						//1.1.2: append to newStateIdxs
+						addStateIdxs.addAll(curStates.get(i).goesTo(""+c));
+					}else{
+						//1.1.3: add to removeStateIdxs if we can't go anywhere
+						removeStateIdxs.add(i);
+					}
+				}
+				//Step 2: remove currentStates[removeStateIdxs]
+				for(int i:removeStateIdxs){
+					curStates.remove(i);
+				}
+				//Step 3: append addStateIdxs to curState
+				for(int i:addStateIdxs){
+					curStates.add(theStates.get(i));
+				}
+
+				//System.err.println("at "+c+": "+curStates);
+			}
+			
+			for(State S:curStates){
+				if(S.getAccept()){
+					ret=true;
+					//System.out.println("ACCEPTS!");
+				}
+			}
+//			System.out.println((ret?"ACCEPTS!":"REJECTS!"));
+		
+		return ret;
 	}
 	
 	/**BONUS! make a dot file for use with the graphviz package.
@@ -305,6 +389,13 @@ public class NFA {
 	 */
 	public String buildDotString(){
 		String ret="";
+		for (State s : theStates){
+			for (Object withChar : s.getToStates().keySet()){
+				for (Integer toNode : (ArrayList<Integer>)s.getToStates().get(withChar)){
+					ret+=s.getIndex()+" -> "+toNode+"[label=\""+withChar+"\"]\n";
+				}
+			}
+		}
 		return ret;
 	}
 	/**
@@ -367,8 +458,9 @@ public class NFA {
 		String NFADescriptionFile=args[0];
 		String NFAInputFileName=args[1];
 		NFA theMachine=new NFA(NFADescriptionFile);
-		theMachine.printMachine();
+		//theMachine.printMachine();
 		theMachine.processInput(NFAInputFileName);
+		System.out.print(theMachine.buildDotString());
 	}
 
 }

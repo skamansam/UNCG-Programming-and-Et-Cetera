@@ -1,0 +1,8 @@
+a#f
+b#a
+c#f
+abc#a
+aaaabcccc#a
+ac#f
+ca#f
+aaaac#f
