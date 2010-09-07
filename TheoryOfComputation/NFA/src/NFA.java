@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.regex.*;
 import java.io.*;
@@ -59,10 +60,6 @@ on the due date.
  * @author sam
  *
  */
-/**
- * @author sam
- *
- */
 public class NFA {
 	//the machine. list of all states
 	ArrayList<State> theStates = new ArrayList<State>();
@@ -99,6 +96,7 @@ public class NFA {
 		/**
 		 * @param b Turn on/off start flag
 		 */
+		public boolean getStart(){return this.isStart;}
 		public void setStart(boolean b){
 			this.isStart=b;
 			//since we are a start state, we have no from
@@ -167,24 +165,27 @@ public class NFA {
 	}
 	
 	/**
-	 * 
+	 * Default constructor. Does nothing.
 	 */
 	public NFA(){}
-	/**
-	 * @param f
+	
+	/** Constructor to automatically handle the machine description file.
+	 * @param f the File which contains the machine description.
 	 */
 	public NFA(File f){readMachineDescription(f);}
-	/**
-	 * @param fn
+	
+	/** Constructor to automatically handle the machine description file.
+	 * @param fn the filename which contains the machine description.
 	 */
 	public NFA(String fn){readMachineDescription(new File(fn));}
 
-	/**
-	 * @param filename
+	/** Reads the machine description file and sets up the machine.
+	 * @param filename the name of the file which contains the machine description
 	 */
 	public void readMachineDescription(String filename){readMachineDescription(new File(filename));}
-	/**
-	 * @param theFile
+
+	/** Reads the machine description file and sets up the machine.
+	 * @param theFile the File which contains the machine description
 	 */
 	public void readMachineDescription(File theFile){
 		try {
@@ -195,10 +196,11 @@ public class NFA {
 
 			//read each line and determine what values we have, either {"trans","start","final"}
 			while (theReader.ready()) {
-				String theLine = theReader.readLine();
+				String theLine = theReader.readLine().trim();
 				
 				//NOTE: I like regex, so i am gonna use it here. There is is probably a nicer way, but I like this approach.
 				//The following bit of code assembles pattern matchers for the input file
+				//The benefit of using regex is that only lines we are looking for are processed.
 				Pattern ptrans = Pattern.compile("trans\\s*(\\d)\\s*(\\S*)\\s*(\\d)"),
 						pstart = Pattern.compile("start\\s*(\\d)"),
 						pfinal = Pattern.compile("final\\s*(\\d)"),
@@ -208,9 +210,10 @@ public class NFA {
 						cmatch=pcomment.matcher(theLine),
 						fmatch=pfinal.matcher(theLine);
 
-				//first, we check for the most used occurrence, being "trans"
+				//ignore comments, line that begin with a #
 				if (cmatch.find()){
-					//ignore comments, line that begin with a #
+
+				//first, we check for the most used occurrence, being "trans"
 				}else if (tmatch.find()){
 					//save values for readability
 					int from = new Integer(tmatch.group(1));
@@ -218,8 +221,10 @@ public class NFA {
 					int to = new Integer(tmatch.group(3));
 					
 					//resize machine to hold the number of states in from and to
-					ensureMachineSize(from);
-					ensureMachineSize(to);
+					ensureMachineHasIndex(from);
+					ensureMachineHasIndex(to);
+
+					//make sure the states have the appropriate to/from values
 					theStates.get(from).addTo(to, thechar);
 					theStates.get(to).addFrom(from, thechar);
 					
@@ -230,6 +235,7 @@ public class NFA {
 					//System.out.println("Start:"+smatch.group(1));
 					theStates.get(new Integer(smatch.group(1))).setStart(true);
 					startStates.add(theStates.get(new Integer(smatch.group(1))));
+
 				//lastly, we check for "final"
 				}else if (fmatch.find()){
 					//System.out.println("Final:"+fmatch.group(1));
@@ -242,44 +248,55 @@ public class NFA {
 			theReader.close();
 
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			System.out.println("File cannot be found!");
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("File cannot be read!");
 		}
 	}
 
 	
 	/** ensures the machine has at least <i>i</i> nodes
-	 * @param i
+	 * @param i the number of nodes to which we want to resize the machine.
 	 */
-	private void ensureMachineSize(int i){
+	private void ensureMachineHasIndex(int i){
 		if (theStates.size()<=i)
 			for (int j=theStates.size();j<=i;j++)
 				theStates.add(new State(j));
 	}
 
 	
-	/**
-	 * @param theInput
+	/** Processes the file containing the input string(s), one per line.
+	 * BONUS! If the line ends in #f (for fail) or #a (for accept), it denotes whether the machine is supposed
+	 * to handle the given string. For example, if the line is "aabbcc#a", it means the 
+	 * machine should be able to accept the string "aabbcc". Likewise, "aabc#f" means the machine
+	 * should fail to accept the string "aabc."
+	 * @param theInput the filename containing the input strings
 	 */
 	public void processInput(String theFile){processInput(new File(theFile));}
-	/**
-	 * @param theInput
+	
+	/** Processes the file containing the input string(s), one per line.
+	 * BONUS! If the line ends in #f (for fail) or #a (for accept), it denotes whether the machine is supposed
+	 * to handle the given string. For example, if the line is "aabbcc#a", it means the 
+	 * machine should be able to accept the string "aabbcc". Likewise, "aabc#f" means the machine
+	 * should fail to accept the string "aabc."
+	 * @param theFile the File containing the input strings
 	 */
 	public void processInput(File theFile){
+		//the list of input strings
 		ArrayList<String> theInputString=new ArrayList<String>();
+		//the list of test results, could be {null,"f","a"}
 		ArrayList<String> theTestResults=new ArrayList<String>();
 
 		try {
-
 			// read input file containing machine description
 			FileInputStream inStream = new FileInputStream(theFile);
 			BufferedReader theReader = new BufferedReader(new InputStreamReader(inStream));
 			while (theReader.ready()) {
 				String curLine=theReader.readLine().trim();//read the line, trimming whitespace at beginning and end
 				if(curLine.isEmpty() || curLine.startsWith("#")); //skip blank lines and comments
+
+				//process the test result specifier
 				else{
-										
 					if(curLine.endsWith("#f")){
 						theTestResults.add("f");
 						curLine=curLine.split("\\#")[0];
@@ -288,7 +305,8 @@ public class NFA {
 						curLine=curLine.split("\\#")[0];
 					}else
 						theTestResults.add("");
-					//add the input string to the lsit of input strings
+
+					//add the input string to the list of input strings
 					theInputString.add(curLine.trim());
 				}
 			}
@@ -297,10 +315,12 @@ public class NFA {
 			theReader.close();
 		
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			System.out.println("Input file not found.");
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("Cannot open input file.");
 		}
+
+		//process the input strings
 		int curIdx=0;
 		for(String s:theInputString){
 			if(canHandleString(s)){
@@ -313,6 +333,13 @@ public class NFA {
 		}
 		
 	}
+
+	/**
+	 * @param theTestString
+	 * @param actualResult
+	 * @param intendedResult
+	 * @return
+	 */
 	private boolean checkVaildity(String theTestString,boolean actualResult, String intendedResult){
 		boolean isValid=false;
 		String errString="";
@@ -337,6 +364,12 @@ public class NFA {
 		System.err.println(errString);
 		return isValid;
 	}
+	
+	/** This method determines whether or not the given string can be accepted by the machine. It is 
+	 * the "main" functionality for this assignment.
+	 * @param s the string to process
+	 * @return whether the machine accepts the string
+	 */
 	public boolean canHandleString(String s){
 		ArrayList<State> curStates=new ArrayList<State>(startStates);
 		boolean ret=false;
@@ -361,13 +394,16 @@ public class NFA {
 						removeStateIdxs.add(i);
 					}
 				}
+				Collections.sort(removeStateIdxs);
 				//Step 2: remove currentStates[removeStateIdxs]
-				for(int i:removeStateIdxs){
-					curStates.remove(i);
+				for(int i=removeStateIdxs.size()-1;i>=0;i--){
+					if(curStates. get(i)!=null)
+						curStates.remove(i);
 				}
 				//Step 3: append addStateIdxs to curState
 				for(int i:addStateIdxs){
-					curStates.add(theStates.get(i));
+//					if(theStates.get(i)!=null)
+						curStates.add(theStates.get(i));
 				}
 
 				//System.err.println("at "+c+": "+curStates);
@@ -388,50 +424,93 @@ public class NFA {
 	 * @return
 	 */
 	public String buildDotString(){
-		String ret="";
+		String ret="digraph NFA{\n";
+		int numStarts=0;
 		for (State s : theStates){
+			if(s.getAccept())
+				ret+="\t"+s.getIndex()+"[shape=doublecircle]\n";
+			if(s.getStart()){
+				String startlbl="start"+(numStarts++);
+				ret+="\t"+startlbl+"[shape=none,label=\"\"]\n";
+				ret+="\t"+startlbl+"->"+s.getIndex()+"[color=green]\n";
+			}
 			for (Object withChar : s.getToStates().keySet()){
 				for (Integer toNode : (ArrayList<Integer>)s.getToStates().get(withChar)){
-					ret+=s.getIndex()+" -> "+toNode+"[label=\""+withChar+"\"]\n";
+					ret+="\t"+s.getIndex()+" -> "+toNode+"[label=\""+withChar+"\"]\n";
 				}
 			}
 		}
+		ret+="}";
 		return ret;
 	}
-	/**
-	 * @param theFile
+	/** Saves the .dot data in the file specified
+	 * @param theFile the file location to save the data
 	 */
-	public void saveDotFile(String theFile){
-	}
-	/**
-	 * @param inFile
-	 * @param outFile
-	 */
-	public void saveDotGraph(String inFile,String outFile){
-		
-		ProcessBuilder p = new ProcessBuilder("dot","-o"+outFile,inFile);
+	public void saveDotFile(String theFile) {
 		try {
-			p.start();
+			BufferedWriter buffer = new BufferedWriter(new FileWriter(theFile));
+			buffer.write(this.buildDotString());
+			buffer.close();
+		} catch (Exception e) {
+			System.err.println("Can't write temp file: " + e.getMessage());
+		}
+	}
+
+	/** Saves the dot information as a JPEG image, as &lt;inFile&gt;.jpg
+	 * @param inFile the file to read and convert to a JPEG
+	 */
+	public String saveDotGraph(String inFile){
+		ProcessBuilder p = new ProcessBuilder("dot","-o"+inFile+".jpg","-Tjpg",inFile);
+		p.redirectErrorStream(true); //redirects stderr to stdout
+		try {
+			Process run=p.start();
+			//we need to capture the output stream in order for this to work properly
+			OutputStream output=run.getOutputStream();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return inFile+".jpg";
 	}
 	/**
 	 * @param theFile
 	 */
 	public void showDotFile(String theFile){
-		ProcessBuilder p = new ProcessBuilder("dot",theFile);
+		//since we need a display to show the file, return if we don't have one
+		if(java.awt.GraphicsEnvironment.isHeadless()){
+			System.err.println("Sorry! We don't have a head to display with.");
+			return;
+		}
+
+		//create a new process to run
+		ProcessBuilder p = new ProcessBuilder("display",theFile);
+		p.redirectErrorStream(true); //redirects stderr to stdout
 		try {
-			p.start();
+			Process run=p.start(); //start the process
+			//we need to capture the output stream in order for this to work properly
+			OutputStream output=run.getOutputStream();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.err.println("Sorry! We can't execute `display`.");
 		}
 		
 	}
 	/**
 	 * @param theData
 	 */
-	public void showDotGraph(String theData){}
+	public void showDotGraph(String theData) {
+		// save the image to a temporary file
+		this.saveDotFile("tmp.dot");
+		this.saveDotGraph("tmp.dot");
+		// display the graph using `dot`
+		this.showDotFile("tmp.dot.jpg");
+
+		// remove temporary file
+		/*File f = new File("tmp.dot");
+		if (f.exists())f.delete();
+		f = new File("tmp.dot.jpg");
+		if (f.exists())f.delete();*/
+
+	}
+
 	/**
 	 * @param theFile
 	 */
@@ -461,6 +540,7 @@ public class NFA {
 		//theMachine.printMachine();
 		theMachine.processInput(NFAInputFileName);
 		System.out.print(theMachine.buildDotString());
+		theMachine.showDotGraph(theMachine.buildDotString());
 	}
 
 }
