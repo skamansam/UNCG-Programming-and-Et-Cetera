@@ -334,26 +334,28 @@ public class NFA {
 		
 	}
 
-	/**
-	 * @param theTestString
-	 * @param actualResult
-	 * @param intendedResult
-	 * @return
+	/**Simply tests whether the acual result is what it is supposed to be.
+	 * @param theTestString What string was tested
+	 * @param actualResult the result we are testing against
+	 * @param intendedResult the result it is supposed to be, either "f" for false or "a" fro true
+	 * @return whether the theTestString == actualResult
 	 */
 	private boolean checkVaildity(String theTestString,boolean actualResult, String intendedResult){
 		boolean isValid=false;
 		String errString="";
-		if(intendedResult==null){
+
+		//always return true for values which are not given
+		if(intendedResult==null | !intendedResult.equals("f") | intendedResult.equals("a")){
 			errString+="No result data for "+theTestString+". Actual result is "+actualResult+".";
 			isValid=true;
 		}else{
 			boolean intendedBool=false;
-			if(intendedResult.equals("f"))
-				intendedBool=false;
-			if(intendedResult.equals("a"))
-				intendedBool=true;
-
-			if(actualResult==intendedBool){
+			
+			//convert the 'a' or 'f' to true or false, respectively
+			//if(intendedResult.equals("f")) intendedBool=false;
+			if(intendedResult.equals("a")) intendedBool=true;
+			
+			if((actualResult==intendedBool)){
 				errString+="Test matches for "+theTestString+".";
 				isValid=true;
 			}else{
@@ -361,7 +363,10 @@ public class NFA {
 				isValid=false;				
 			}
 		}
+		//print the error string
 		System.err.println(errString);
+		
+		//return whether it is valid
 		return isValid;
 	}
 	
