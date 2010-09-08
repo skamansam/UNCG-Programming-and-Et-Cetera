@@ -1,0 +1,45 @@
+#this machine accepts (.*a.....) ["a is 5th from last"]
+
+trans 0 a 0
+trans 0 b 0
+trans 0 c 0
+
+trans 0 a 1
+
+trans 1 a 2
+trans 1 b 2
+trans 1 c 2
+
+trans 2 a 3
+trans 2 b 3
+trans 2 c 3
+
+trans 3 a 4
+trans 3 b 4
+trans 3 c 4
+
+trans 4 a 5
+trans 4 b 5
+trans 4 c 5
+
+
+trans 0 b 6
+
+trans 6 a 7
+trans 6 b 7
+trans 6 c 7
+
+trans 7 a 8
+trans 7 b 8
+trans 7 c 8
+
+trans 8 a 9
+trans 8 b 9
+trans 8 c 9
+
+trans 9 a 5
+trans 9 b 5
+trans 9 c 5
+
+start 0
+final 5

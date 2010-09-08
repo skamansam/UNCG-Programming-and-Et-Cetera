@@ -1,0 +1,11 @@
+
+a#f
+b#f
+c#f
+abc#f
+aaaabccc#a
+abcbc#a
+bbbbbbbbbbbbbbbbbabccc#a
+aaaabccc#a
+aaaabccc#a
+

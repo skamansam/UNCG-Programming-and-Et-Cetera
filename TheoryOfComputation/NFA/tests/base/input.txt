@@ -1,0 +1,5 @@
+
+aaabbbccc#f
+abc#a
+bbb#a
+aaaaabbbccc#f

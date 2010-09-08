@@ -1,0 +1,8 @@
+trans 2 a 1
+trans 2 b 1
+trans 2 b 0
+trans 2 c 2
+trans 0 b 0
+trans 0 c 0
+start 2
+final 0

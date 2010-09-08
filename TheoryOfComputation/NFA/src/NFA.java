@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.regex.*;
@@ -6,6 +7,7 @@ import java.io.*;
 
 /** Samuel C. Tyler
  * Theory of Computation Fall 2010 - Homework 1
+ * I have abided by the UNCG Honor code on this assignment. - SCT
  * 
 _NFA Simulator_
 For this problem, you will write a program called NFA.cpp or NFA.java that simulates NFA. Your program
@@ -67,7 +69,7 @@ public class NFA {
 	//currently "active" states
 	ArrayList<State> startStates = new ArrayList<State>();
 	
-	private class State{
+	public class State{
 		private int idx;
 		private boolean isAccept=false;
 		private boolean isStart=false;
@@ -248,9 +250,9 @@ public class NFA {
 			theReader.close();
 
 		} catch (FileNotFoundException e) {
-			System.out.println("File cannot be found!");
+			System.out.println("File "+theFile.getName()+" cannot be found!");
 		} catch (IOException e) {
-			System.out.println("File cannot be read!");
+			System.out.println("File "+theFile.getName()+" cannot be read!");
 		}
 	}
 
@@ -292,11 +294,14 @@ public class NFA {
 			FileInputStream inStream = new FileInputStream(theFile);
 			BufferedReader theReader = new BufferedReader(new InputStreamReader(inStream));
 			while (theReader.ready()) {
-				String curLine=theReader.readLine().trim();//read the line, trimming whitespace at beginning and end
-				if(curLine.isEmpty() || curLine.startsWith("#")); //skip blank lines and comments
-
+				String curLine=theReader.readLine();//read the line, trimming whitespace at beginning and end
+				if(curLine.startsWith("#")); //skip comments
+				else if(curLine.isEmpty()){
+					theTestResults.add("");
+					theInputString.add("");
+					//System.out.println("Adding input: [null string]");
 				//process the test result specifier
-				else{
+				}else{
 					if(curLine.endsWith("#f")){
 						theTestResults.add("f");
 						curLine=curLine.split("\\#")[0];
@@ -307,7 +312,8 @@ public class NFA {
 						theTestResults.add("");
 
 					//add the input string to the list of input strings
-					theInputString.add(curLine.trim());
+					//System.out.println("Adding input: "+curLine);
+					theInputString.add(curLine);
 				}
 			}
 			// close the file readers
@@ -440,8 +446,16 @@ public class NFA {
 				ret+="\t"+startlbl+"->"+s.getIndex()+"[color=green]\n";
 			}
 			for (Object withChar : s.getToStates().keySet()){
+				//TODO: combine arrows with same from/to
 				for (Integer toNode : (ArrayList<Integer>)s.getToStates().get(withChar)){
-					ret+="\t"+s.getIndex()+" -> "+toNode+"[label=\""+withChar+"\"]\n";
+					//find similar arrows
+					String arrowName=(String)withChar;
+					/*for (Object otherChar : s.getToStates().keySet()){
+						for (Integer sameNodeIdx : (ArrayList<Integer>)s.getToStates().get(withChar)){
+							if(sameNodeIdx==toNode) arrowName+=","+otherChar;
+						}
+					}*/
+					ret+="\t"+s.getIndex()+" -> "+toNode+"[label=\""+arrowName+"\"]\n";
 				}
 			}
 		}
@@ -493,9 +507,13 @@ public class NFA {
 			Process run=p.start(); //start the process
 			//we need to capture the output stream in order for this to work properly
 			OutputStream output=run.getOutputStream();
+			//int errorCode=run.waitFor();
 		} catch (IOException e) {
 			System.err.println("Sorry! We can't execute `display`.");
-		}
+		} /*catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
 		
 	}
 	/**
@@ -520,6 +538,10 @@ public class NFA {
 	 * @param theFile
 	 */
 	public void showDotGraph(File theFile){}
+
+	/**
+	 * prints the current machine information. Simply calls toString() on each state.
+	 */
 	public void printMachine(){
 		for(State s:theStates){
 			System.out.println(s);
@@ -531,21 +553,45 @@ public class NFA {
 	 */
 	public static void main(String[] args) {
 		
+		//array to hold manipulate options
+		ArrayList<String> options=new ArrayList<String>(Arrays.asList(args));
+		
+		//array which contains switches
+		ArrayList<Integer> switchIndices=new ArrayList<Integer>();
+
+		boolean drawGraph=false; //whether we want to draw a graph using graphviz
+
+		//this block handles all command line switches
+		int i=0;
+		for(String s: options){
+			char[] theOption=s.toLowerCase().toCharArray();
+			if(theOption[0]=='-'){
+				if(theOption.length>1 && theOption[1]=='g')
+					drawGraph=true;
+				switchIndices.add(i);
+			}
+			i++;
+		}
+		//remove switches from options
+		for(Integer rem: switchIndices)
+			options.remove(rem+0);
+		
 		//Make sure we are operating with 2 files
-		if(args.length==1){
+		if(options.size()==1){
 			System.out.println("Please specify file containing input string.");
 			System.exit(1);
-		}else if (args.length == 0 ){
-			System.out.println("Usage: java NFA <Description File> <Input File>.");
+		}else if (options.size() == 0 ){
+			System.out.println("Usage: java NFA [-g] <Description File> <Input File>.");
 			System.exit(1);
 		}
-		String NFADescriptionFile=args[0];
-		String NFAInputFileName=args[1];
+		String NFADescriptionFile=options.get(0);
+		String NFAInputFileName=options.get(1);
 		NFA theMachine=new NFA(NFADescriptionFile);
 		//theMachine.printMachine();
 		theMachine.processInput(NFAInputFileName);
-		System.out.print(theMachine.buildDotString());
-		theMachine.showDotGraph(theMachine.buildDotString());
+//		System.out.print(theMachine.buildDotString());
+		if(drawGraph)
+			theMachine.showDotGraph(theMachine.buildDotString());
 	}
 
 }
